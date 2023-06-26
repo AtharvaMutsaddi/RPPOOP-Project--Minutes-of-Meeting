@@ -41,21 +41,24 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<a class="navbar-brand" href="#">SummAIri</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+		  aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		  <span class="navbar-toggler-icon"></span>
+		</button>
+	
+		<div class="collapse navbar-collapse dark" id="navbarSupportedContent">
+		  <ul class="navbar-nav mr-auto">
+			<li class="nav-item active">
+			  <a class="nav-link" href="{{ url_for('home') }}">Online Lecture Summarizer <span class="sr-only"></span></a>
+			</li>
+			<li class="nav-item active">
+			  <a class="nav-link" href="{{ url_for('upload') }}">TNC Summarizer <span class="sr-only"></span></a>
+			</li>
+		  </ul>
+		</div>
+	  </nav>
     <div class="content-section m-5">
         <form action="{{ url_for('summarize') }}" method="post">
             <div class="form-group">
@@ -77,7 +80,7 @@
 		</div>
 
 		<div class="scrollable-div-container">
-			<div class="label"><h1>Summarized Content</h1></div>
+			<div class="label"><h3>Key Moments of your Online Lecture</h3></div>
 			<div class="scrollable-div">
 				{{ final_summary }}
 			</div>
