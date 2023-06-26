@@ -1,13 +1,17 @@
 from flask import Flask, request, jsonify, render_template, url_for
 import numpy as np
-from youtube_transcript_api import YouTubeTranscriptApi as yta
+# CUSTOM CLASSES:
+from TranscriptSummarizerObj import YTpreprocessor,AbstractSummarizer,SummaryGenerator
+from TNCFeatureExtractor import TNC_Feature_Extractor,TFIDFscorer
+
+
 import warnings
 warnings.filterwarnings("ignore")
 # import pickle
 from email.message import EmailMessage
 import ssl
 import smtplib 
-from transformers import pipeline
+
 # TNC SUMMARIZER MODEL
 import nltk
 # nltk.download('punkt')
@@ -20,6 +24,11 @@ from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
+from flask import Flask, render_template, request
+from wordcloud import WordCloud
+from collections import Counter
+import os
 
 def send_email(email_sender,email_password,email_reciever,summary):
     subject="Your Meeting Summary"
@@ -38,53 +47,6 @@ def send_email(email_sender,email_password,email_reciever,summary):
         smtp.sendmail(email_sender,email_reciever,em.as_string())
         print("Email sent successfully")
 
-class YTpreprocessor:
-    def __init__(self,ytlinkID):
-        self.ytlinkID=ytlinkID
-        self.tra=""
-    def generate_preprocessed_transcript(self):
-        data = yta.get_transcript(self.ytlinkID)
-        self.tra=" ".join([x['text'] for x in data])
-        return self.tra
-    
-    def segment_text(self,text, block_length=500):
-        segments = []
-        current_segment = ""
-        words = text.split()
-
-        for word in words:
-            if len(current_segment.split()) + 1 + 1 <= block_length:  # Add 1 for the space between words
-                current_segment += word + " "
-            else:
-                segments.append(current_segment)
-                current_segment = word + " "
-
-        # Add the last segment
-        segments.append(current_segment)
-        return segments
-
-class AbstractSummarizer:
-    def loadmodel(self):
-        summarizer=pipeline('summarization')
-        return summarizer
-
-class SummaryGenerator(AbstractSummarizer):
-    def __init__(self):
-        self.summarizer=self.loadmodel()
-
-    def get_timeframe_wise_summary(self,segments):
-        final_summary=""
-        n=len(segments)
-        i=1
-        for text in segments:
-            print(f"Summarizing {i} out of {n} segments of the transcript")
-            max_len=min(150,len(text))
-            summary=self.summarizer(text,max_length=max_len,min_length=30,do_sample=False)
-            final_summary+=" "
-            final_summary+=summary[0]['summary_text']
-            i+=1
-        
-        return final_summary
 
 
 sent_stopwords=stopwords.words('english')
@@ -106,47 +68,7 @@ def reduce_to_root_words(sentence):
     reduced_sentence = ' '.join(root_words)
     return reduced_sentence
 
-class TNC_Feature_Extractor:
-    def __init__(self,text):
-        self.text=text
-        self.sent_stopwords=stopwords.words('english')
-        self.punctuation=punctuation
 
-    def tokenize_to_sents(self):
-      tnc=self.text
-      sentences=tnc.split(".")
-      sentences=" ".join(sentences)
-      sentences=sentences.split("\n")
-      non_empty_sents=[]
-      for sent in sentences:
-        if(len(sent) > 2):
-            non_empty_sents.append(sent)
-
-      return non_empty_sents
-
-    
-    def preprocess_text(self,sentences):
-      # remove punct and alpha num
-      preprocessed_sents=[remove_numeric_statements(x) for x in sentences]
-      # stemming
-      preprocessed_sents=[reduce_to_root_words(x) for x in preprocessed_sents]
-
-      return preprocessed_sents
-      
-
-class TFIDFscorer:
-  def __init__(self):
-    self.vectorizer = TfidfVectorizer(stop_words=stopwords.words('english'))
-  
-  def generate_words_to_scores(self,preprocessed_sents):
-    tfidf_matrix = self.vectorizer.fit_transform(preprocessed_sents)
-    all_words=self.vectorizer.get_feature_names_out()
-    word_to_score={}
-    for word in all_words:
-        indx= self.vectorizer.vocabulary_.get(word)
-        word_to_score[word]=self.vectorizer.idf_[indx]
-    #     print("{}: Score-> {}".format(word,v.idf_[indx]))
-    return word_to_score
     
 def calculate_sentence_scores(preprocessed_sents,non_empty_sents,word_to_score):
     sent_score_dict={}
@@ -239,5 +161,78 @@ def summarizetnc():
     # print(final_para)
     score=calculate_cosine_similarity(final_para,tnc)
     return render_template('tnc.html', final_sents=final_sents, score=score)
+def generate_wordcloud(text):
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig('static/wordcloud.png')
+    plt.clf()
+def generate_bar_chart(words, counts):
+    plt.figure(figsize=(10, 5))
+    plt.bar(words, counts)
+    plt.xlabel('Words',fontsize=16)
+    plt.ylabel('Frequencies',fontsize=16)
+    plt.title('Top 10 Word Frequencies',fontsize=16)
+    plt.xticks(rotation=45)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.tight_layout()
+    plt.savefig('static/barchart.png')
+    plt.clf()
+def generate_pie_chart(keywords,size):
+    plt.figure(figsize=(8, 8))
+    word_counts = Counter(keywords)
+    # Calculate the percentage of each word in the text
+    percentages = [(word, count / size * 100) for word, count in word_counts.items()]
+
+    # Sort the percentages in descending order
+    percentages = sorted(percentages, key=lambda x: x[1], reverse=True)
+
+    # Select the top 10 words and their percentages
+    top_words = [word for word, _ in percentages[:10]]
+    top_percentages = [percentage for _, percentage in percentages[:10]]
+
+    # Plotting the pie chart
+    plt.pie(top_percentages, labels=top_words, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 15})
+
+    # Aspect ratio of the pie chart to make it a circle
+    plt.axis('equal')
+
+    # Saving the pie chart as an image
+    plt.savefig('static/pie_chart.png')
+
+    # Clear the current figure
+    plt.clf()
+@app.route('/textanalyzer')
+def textanalyzer():
+    return render_template('textanalyzer.html')
+    
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    text = request.form['text']
+    size=len(text.split())
+    # Delete existing image files
+    existing_files = ['static/wordcloud.png', 'static/barchart.png','static/pie_chart.png']
+    for file in existing_files:
+        if os.path.exists(file):
+            os.remove(file)
+
+    # Generate new images
+    text=remove_numeric_statements(text)
+    keywords=[]
+    for word in text.split():
+        if word not in stopwords.words('english'):
+            keywords.append(word)
+    important_txt=" ".join(keywords)
+    word_counts = Counter(keywords)
+    top_words = [word for word, count in word_counts.most_common(10)]
+    top_counts = [count for word, count in word_counts.most_common(10)]
+    generate_wordcloud(important_txt)
+    generate_bar_chart(top_words, top_counts)
+    generate_pie_chart(keywords, size)
+    return render_template('result.html')
+
 if __name__=="__main__":
     app.run(debug=True)

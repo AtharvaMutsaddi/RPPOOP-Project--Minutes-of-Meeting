@@ -1,0 +1,9 @@
+Flask
+numpy
+youtube-transcript-api
+transformers
+nltk
+string
+scikit-learn
+matplotlib
+wordcloud

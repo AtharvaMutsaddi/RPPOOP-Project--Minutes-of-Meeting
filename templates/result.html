@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Text Analysis Result</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 50px;
+        }
+
+        .graph-container {
+            display:inline-block;
+            margin: 20px;
+            text-align: center;
+        }
+
+        img {
+            max-width: 500px;
+            max-height: 350px;
+        }
+
+        .word-cloud {
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .bar-chart {
+            display: block;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">SummAIri</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse dark" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('home') }}">Online Lecture Summarizer <span
+                            class="sr-only"></span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('upload') }}">TNC Summarizer <span class="sr-only"></span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('textanalyzer') }}">Text Analyzer<span
+                            class="sr-only"></span></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <h1>Text Analysis Result</h1>
+    <div class="graph-container">
+      <h2>Word Cloud</h2>
+      <img src="{{ url_for('static', filename='wordcloud.png') }}" alt="Word Cloud">
+    </div>
+    <div class="graph-container">
+      <h2>Top 10 Keywords</h2>
+      <img src="{{ url_for('static', filename='barchart.png') }}" alt="Bar Chart">
+    </div>
+    <div">
+        <h2>Frequency Pie Chart</h2>
+      <img src="{{ url_for('static', filename='pie_chart.png') }}" alt="Pie Chart" id="piechart">
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
