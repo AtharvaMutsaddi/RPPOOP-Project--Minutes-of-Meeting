@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, url_for
 import numpy as np
 # CUSTOM CLASSES:
-from TranscriptSummarizerObj import YTpreprocessor,AbstractSummarizer,SummaryGenerator
+from TranscriptSummarizerObj import YTpreprocessor,SummaryGenerator
 from TNCFeatureExtractor import TNC_Feature_Extractor,TFIDFscorer
 
 
