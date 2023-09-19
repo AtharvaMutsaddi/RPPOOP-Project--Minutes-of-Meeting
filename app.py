@@ -135,7 +135,6 @@ def summarize():
     final_summary=sg.get_timeframe_wise_summary(segments)
     word_count_final=len(final_summary.split())
 
-    send_email("mspaakhi01@gmail.com","xjmftwwqkywqlydc","atharva.mutsaddi@gmail.com",final_summary)
     return render_template('index.html', final_tra=final_tra,final_summary=final_summary,word_count_original=word_count_original,word_count_final=word_count_final)
 
 @app.route('/upload')
